@@ -1,4 +1,4 @@
-D200TechSimilarityTask <- R6Class(
+D200TechSimilarityTask <- R6::R6Class(
   classname = "D200TechSimilarityTask",
   public = list(
     raw_corpus = NULL,
@@ -126,8 +126,14 @@ D200TechSimilarityTask <- R6Class(
   ),
 
   private = list(
-    cutter = jiebaR::worker(stop_word = "stopword/stop_word.txt"),
     get_vectorize_matrix = function(corpus_data = self$raw_corpus) {
+
+      if (file.exists("stopword/stop_word.txt")) {
+        cutter <- jiebaR::worker(stop_word = "stopword/stop_word.txt")
+      } else {
+        message(" \nCan't find stopword/stop_word.txt, So current tokenizer isn't set stop word.")
+        cutter <- jiebaR::worker()
+      }
 
       pb <- progress_estimated(length(self$raw_corpus$text_content))
 
