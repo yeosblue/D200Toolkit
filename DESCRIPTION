@@ -2,12 +2,26 @@ Package: D200Toolkit
 Type: Package
 Title: The toolkit package for ITRI ITSC D200 department.
 Version: 0.0.0.9000
-Author@R: 
-    person("Steven", "Yeo", email = "shihjyun.yeo@gmail.com", role = c("aut", "cre"))
-Maintainer: The package maintainer <yourself@somewhere.net>
+Authors@R: 
+    person(given = "Steven",
+           family = "Yeo", 
+           role = c("aut", "cre"),
+           email = "shihjyun.yeo@gmail.com")
 Description: The main function of this toolkit package is consine similarity based
     text recommendation system. The current application scenario is to recommend
     the exhibition technologies.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Imports: 
+    text2vec,
+    jiebaR,
+    readr,
+    R6,
+    rlang,
+    progress,
+    dplyr,
+    tidyr,
+    purrr,
+    tibble,
+    stringr
