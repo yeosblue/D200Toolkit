@@ -25,7 +25,7 @@ initialize_project <- function(){
     if (!dir.exists(i)) {
       dir.create(i)
     } else {
-      message(paste0(i, " has been created."))
+      message(paste0("\n",i , " has been created."))
     }
   }
 
