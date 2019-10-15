@@ -1,3 +1,20 @@
+#'
+#'
+#'@import dplyr
+#'@import rlang
+#'@import text2vec
+#'@import stringr
+#'@import progress
+#'@importFrom R6 R6Class
+#'@importFrom purrr map_chr
+#'@importFrom tidyr gather
+#'@importFrom tibble as_tibble
+#'@importFrom jiebaR worker
+#'@importFrom readr write_rds
+#'@importFrom tibble rowid_to_column
+#'@export
+#'
+
 D200TechSimilarityTask <- R6::R6Class(
   classname = "D200TechSimilarityTask",
   public = list(
@@ -35,6 +52,7 @@ D200TechSimilarityTask <- R6::R6Class(
       message(" \nThe task created successfully!")
 
       private$get_vectorize_matrix()
+
     },
 
     get_insight_matrix = function(corpus_matrix = self$corpus_matrix,
@@ -106,9 +124,9 @@ D200TechSimilarityTask <- R6::R6Class(
         gather(main_id, ref_id, names(tmp_list)) %>%
         mutate(main_id = as.numeric(main_id),
                ref_id = as.numeric(ref_id)) %>%
-        left_join(test$raw_corpus %>% select(rowid, text_item_name, text_category),
+        left_join(self$raw_corpus %>% select(rowid, text_item_name, text_category),
                   by = c("main_id" = "rowid")) %>%
-        left_join(test$raw_corpus %>% select(rowid, text_item_name, text_category),
+        left_join(self$raw_corpus %>% select(rowid, text_item_name, text_category),
                   by = c("ref_id"= "rowid")) %>%
         mutate(rank = rep(1:topn, length(tmp_list))) %>%
         rename("main_item" = "text_item_name.x",
@@ -135,17 +153,17 @@ D200TechSimilarityTask <- R6::R6Class(
         cutter <- jiebaR::worker()
       }
 
-      pb <- progress_estimated(length(self$raw_corpus$text_content))
+      pb <- progress_estimated(length(corpus_data$text_content))
 
       message(" \nTokenizing ...")
 
       token_func <- function(x){
         pb$tick()$print()
-        private$cutter[x] %>% str_c(collapse = " ")
+        cutter[x] %>% str_c(collapse = " ")
       }
 
-      t2v_token_set <- self$raw_corpus %>%
-        mutate(token = map_chr(self$raw_corpus$text_content, token_func))
+      t2v_token_set <- corpus_data %>%
+        mutate(token = map_chr(corpus_data$text_content, token_func))
       it <- itoken(t2v_token_set$token, progressbar = FALSE)
       message(" \nStep(1/5):Tokenize corpus successfully!")
 
