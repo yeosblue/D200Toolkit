@@ -1,27 +1,64 @@
+#' Create a list of corpus similarity based recommendations.
 #'
+#' @description
+#' Imagine this object is a lab. You can use two methods in this lab
+#'  easy to make a recommendation list.
 #'
-#'@import dplyr
-#'@import rlang
-#'@import text2vec
-#'@import stringr
-#'@import progress
-#'@importFrom R6 R6Class
-#'@importFrom purrr map_chr
-#'@importFrom tidyr gather
-#'@importFrom tibble as_tibble
-#'@importFrom jiebaR worker
-#'@importFrom readr write_rds
-#'@importFrom tibble rowid_to_column
-#'@export
-#'
+#' @import dplyr
+#' @import rlang
+#' @import text2vec
+#' @import stringr
+#' @import progress
+#' @importFrom R6 R6Class
+#' @importFrom purrr map_chr
+#' @importFrom tidyr gather
+#' @importFrom tibble as_tibble
+#' @importFrom jiebaR worker
+#' @importFrom readr write_rds
+#' @importFrom tibble rowid_to_column
+#' @export
+#' @md
 
 D200TechSimilarityTask <- R6::R6Class(
   classname = "D200TechSimilarityTask",
   public = list(
+
+    #' @field raw_corpus Preprocessed corpus after initialize.
     raw_corpus = NULL,
+
+    #' @field corpus_matrix The output of the private method
+    #' `get_vectorize_matrix`.
     corpus_matrix = NULL,
+
+    #' @field insight_matrix_set The output of the public method
+    #' `insight_matrix_set` ( the raw result of similarity between
+    #' `main_item` and `ref_item` ).
     insight_matrix_set = NULL,
+
+    #' @description
+    #' Create a new D200TechSimilarityTask object. You
+    #' can image this step is to create or enter into the lab you can
+    #' easy to make a recommendation list.
+    #' This initializing step also do the following work :
+    #' 1. Check column name.
+    #' 2. Check data type (tibble).
+    #' 3. If the data type is wrong, it will auto convert
+    #' to the right data type.
+    #'
+    #' @param raw_corpus The raw corpus you want to analysis
+    #' from external place(.csv or .xlsx file). It must be noted that
+    #' the corpus column name must be named according to the
+    #' following sample :
+    #' - text_item_name : the name of the article/text.
+    #' - text_content : the content of the article/text.
+    #' - text_category : the category/source of the article/text.
+    #'
+    #' @return A new `D200TechSimilarityTask` object.
     initialize = function(raw_corpus) {
+
+      if (is.null(raw_corpus)) {
+        return()
+      }
 
       tmp_raw_corpus <- raw_corpus
       df_class <- map_chr(tmp_raw_corpus, class)
@@ -55,9 +92,28 @@ D200TechSimilarityTask <- R6::R6Class(
 
     },
 
+
+    #' @description
+    #' Create the insight matrix set
+    #'
+    #'
+    #' @param corpus_matrix Like above description, `corpus_matrix` is the output
+    #' of the private method `get_vectorize_matrix`.
+    #'
+    #' @param set_cat the `list` object contain two following character vector
+    #' from `text_category` field from raw corpus :
+    #' - main_cat : which types of corpus you want to base on.
+    #' - ref_cat : which types of corpus you want to be recommended.
+    #'
+    #'
+    #' @return
+    #' - a matrix object store in `R6_object$insight_matrix_set`.
+    #' - auto create .rds file in insight_matrix_set folder in your
+    #' working directory.
+    #'
     get_insight_matrix = function(corpus_matrix = self$corpus_matrix,
-                                  set_cat = list(main_cat = "",
-                                                 ref_cat = "")){
+                                  set_cat = list(main_cat = "main_cat_name",
+                                                 ref_cat = "ref_cat_name")){
 
       text_category_all <- unique(self$raw_corpus$text_category)
 
@@ -82,7 +138,9 @@ D200TechSimilarityTask <- R6::R6Class(
         set_cat = list(
           "main_cat_id" = main_cat_id,
           "ref_cat_id" = ref_cat_id
-        )
+        ),
+
+        raw_corpus_in_set = self$raw_corpus %>% select(-text_content)
       )
 
       if (!dir.exists("insight_matrix_set")) {
@@ -99,9 +157,29 @@ D200TechSimilarityTask <- R6::R6Class(
       message(" \ninsight_matrix_set is stored in R6_Object_name$insight_matrix_set!")
     },
 
+    #' @description
+    #' Create the recommendation list.
+    #'
+    #' @param insight_matrix_set Like above description, corpus_matrix is the output
+    #' of the public method `get_insight_matrix`. The default value of this
+    #' argument is `insight_matrix_set` make by latest excutation. You also can use
+    #' different version `insight_matrix_set` stored in insight_matrix_set folder in
+    #' your working directory.
+    #'
+    #' @param topn n most relevant item in ref_cat you choice.
+    #'
+    #' @return The recommendation list will export in recommend_result folder in
+    #' your working directory.
+
     get_recommend_result = function(insight_matrix_set = self$insight_matrix_set, topn){
 
       tmp_matrix_set <- insight_matrix_set
+
+      if (is.null(self$raw_corpus)) {
+        tmp_raw_corpus <- insight_matrix_set$raw_corpus_in_set
+      } else {
+        tmp_raw_corpus <- self$raw_corpus
+      }
 
       tmp_list <- vector("list", length(tmp_matrix_set$set_cat$main_cat_id))
       names(tmp_list) <- tmp_matrix_set$set_cat$main_cat_id
@@ -124,9 +202,9 @@ D200TechSimilarityTask <- R6::R6Class(
         gather(main_id, ref_id, names(tmp_list)) %>%
         mutate(main_id = as.numeric(main_id),
                ref_id = as.numeric(ref_id)) %>%
-        left_join(self$raw_corpus %>% select(rowid, text_item_name, text_category),
+        left_join(tmp_raw_corpus %>% select(rowid, text_item_name, text_category),
                   by = c("main_id" = "rowid")) %>%
-        left_join(self$raw_corpus %>% select(rowid, text_item_name, text_category),
+        left_join(tmp_raw_corpus %>% select(rowid, text_item_name, text_category),
                   by = c("ref_id"= "rowid")) %>%
         mutate(rank = rep(1:topn, length(tmp_list))) %>%
         rename("main_item" = "text_item_name.x",
@@ -137,7 +215,8 @@ D200TechSimilarityTask <- R6::R6Class(
 
       tmp_file_name <- Sys.time() %>% format(format = "%Y-%m-%d-%H-%M-%S")
       write.csv(tmp_tbl,  paste0("recommend_result//",tmp_file_name,"_recom_result.csv"), row.names = FALSE)
-      message(" \nExport recommended list successfully!")
+      message(" \n Export recommendation list successfully! Please check recommend_result folder
+              in your working directory.")
 
     }
 
@@ -187,3 +266,5 @@ D200TechSimilarityTask <- R6::R6Class(
   )
 
 )
+
+
