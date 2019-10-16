@@ -57,6 +57,7 @@ D200TechSimilarityTask <- R6::R6Class(
     initialize = function(raw_corpus) {
 
       if (is.null(raw_corpus)) {
+        message(" \nThe task create successfully!")
         return()
       }
 
@@ -86,7 +87,7 @@ D200TechSimilarityTask <- R6::R6Class(
 
       self$raw_corpus <- tmp_raw_corpus
 
-      message(" \nThe task created successfully!")
+      message(" \nThe task create successfully!")
 
       private$get_vectorize_matrix()
 
@@ -186,7 +187,7 @@ D200TechSimilarityTask <- R6::R6Class(
 
       pb <- progress_bar$new(
         total = length(tmp_list),
-        format = "  exporting recommended list [:bar] :current/:total (:percent) eta: :eta"
+        format = "  exporting recommendation list [:bar] :current/:total (:percent) eta: :eta"
       )
       for (i in 1:length(tmp_list)) {
         pb$tick()
@@ -215,8 +216,7 @@ D200TechSimilarityTask <- R6::R6Class(
 
       tmp_file_name <- Sys.time() %>% format(format = "%Y-%m-%d-%H-%M-%S")
       write.csv(tmp_tbl,  paste0("recommend_result//",tmp_file_name,"_recom_result.csv"), row.names = FALSE)
-      message(" \n Export recommendation list successfully! Please check recommend_result folder
-              in your working directory.")
+      message(" \n Export recommendation list successfully! Please check recommend_result folder in your working directory.")
 
     }
 
