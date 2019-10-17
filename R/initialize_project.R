@@ -10,7 +10,6 @@
 #'  The purpose of each folder:
 #'  - insight_matrix_set : The place store insight_matrix_set's rds file.
 #'  - recommend_result : The place store the result list of recommendation.
-#'  - error_log : Record error information.
 #'
 #'  If each folder has been created in the previous project, the function
 #'   will also notify the folder already existed.
@@ -19,7 +18,7 @@
 
 initialize_project <- function(){
 
-  dir_name <- c("insight_matrix_set", "recommend_result", "error_log")
+  dir_name <- c("insight_matrix_set", "recommend_result")
 
   for (i in dir_name) {
     if (!dir.exists(i)) {

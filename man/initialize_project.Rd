@@ -16,7 +16,6 @@ The purpose of each folder:
 \itemize{
 \item insight_matrix_set : The place store insight_matrix_set's rds file.
 \item recommend_result : The place store the result list of recommendation.
-\item error_log : Record error information.
 }
 
 If each folder has been created in the previous project, the function
