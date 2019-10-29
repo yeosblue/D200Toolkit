@@ -27,6 +27,7 @@ easy to make a recommendation list.
 \item \href{#method-new}{\code{D200TechSimilarityTask$new()}}
 \item \href{#method-get_insight_matrix}{\code{D200TechSimilarityTask$get_insight_matrix()}}
 \item \href{#method-get_recommend_result}{\code{D200TechSimilarityTask$get_recommend_result()}}
+\item \href{#method-get_connection}{\code{D200TechSimilarityTask$get_connection()}}
 }
 }
 \if{html}{\out{<hr>}}
@@ -127,5 +128,13 @@ your working directory.}
 The recommendation list will export in recommend_result folder in
 your working directory.
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_connection"></a>}}
+\subsection{Method \code{get_connection()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{D200TechSimilarityTask$get_connection(id1, id2)}\if{html}{\out{</div>}}
+}
+
 }
 }
