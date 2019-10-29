@@ -15,6 +15,7 @@
 #' @importFrom tibble as_tibble
 #' @importFrom jiebaR worker
 #' @importFrom readr write_rds
+#' @importFrom readr write_excel_csv
 #' @importFrom tibble rowid_to_column
 #' @export
 #' @md
@@ -207,7 +208,7 @@ D200TechSimilarityTask <- R6::R6Class(
         select(rank, ref_item, ref_item_category, main_item, main_item_category)
 
       tmp_file_name <- Sys.time() %>% format(format = "%Y-%m-%d-%H-%M-%S")
-      write.csv(tmp_tbl,  paste0("recommend_result//",tmp_file_name,"_recom_result.csv"), row.names = FALSE)
+      write_excel_csv(tmp_tbl,  paste0("recommend_result//",tmp_file_name,"_recom_result.csv"))
       message(" \n Export recommendation list successfully! Please check recommend_result folder in your working directory.")
 
     },
