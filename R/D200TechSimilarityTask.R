@@ -139,9 +139,7 @@ D200TechSimilarityTask <- R6::R6Class(
         set_cat = list(
           "main_cat_id" = main_cat_id,
           "ref_cat_id" = ref_cat_id
-        ),
-
-        raw_corpus_in_set = self$raw_corpus %>% select(-text_content)
+        )
       )
 
       if (!dir.exists("insight_matrix_set")) {
@@ -175,6 +173,7 @@ D200TechSimilarityTask <- R6::R6Class(
     get_recommend_result = function(insight_matrix_set = self$insight_matrix_set, topn){
 
       tmp_matrix_set <- insight_matrix_set
+      tmp_matrix <- tmp_matrix_set$insight_matrix
 
       if (is.null(self$raw_corpus)) {
         tmp_raw_corpus <- insight_matrix_set$raw_corpus_in_set
@@ -182,32 +181,25 @@ D200TechSimilarityTask <- R6::R6Class(
         tmp_raw_corpus <- self$raw_corpus
       }
 
-      tmp_list <- vector("list", length(tmp_matrix_set$set_cat$main_cat_id))
-      names(tmp_list) <- tmp_matrix_set$set_cat$main_cat_id
-
-      pb <- progress_bar$new(
-        total = length(tmp_list),
-        format = "  exporting recommendation list [:bar] :current/:total (:percent) eta: :eta"
-      )
-      for (i in 1:length(tmp_list)) {
-        pb$tick()
-        tmp_list[[i]] <-
-          tmp_matrix_set$insight_matrix[i,
-                                        tmp_matrix_set$insight_matrix[i, ] %>% order(decreasing=TRUE)] %>%
-          names() %>%
-          `[`(1:topn)
-      }
-
-      tmp_tbl <- tmp_list %>%
+      tmp_tbl <- matrix(ceiling(order(row(tmp_matrix), tmp_matrix, decreasing = TRUE) / nrow(tmp_matrix)),
+                        nrow(tmp_matrix),
+                        byrow = TRUE) %>%
+        `[`(nrow(tmp_matrix):1, ) %>%
         as_tibble() %>%
-        gather(main_id, ref_id, names(tmp_list)) %>%
+        select(1:topn)
+
+      colnames(tmp_tbl) <- colnames(tmp_matrix)[1:topn]
+
+      tmp_tbl <- tmp_tbl %>%
+        mutate(main_id = row.names(tmp_matrix)) %>%
+        gather(rank, ref_id, colnames(tmp_tbl)) %>%
         mutate(main_id = as.numeric(main_id),
                ref_id = as.numeric(ref_id)) %>%
+        arrange(main_id) %>%
         left_join(tmp_raw_corpus %>% select(rowid, text_item_name, text_category),
                   by = c("main_id" = "rowid")) %>%
         left_join(tmp_raw_corpus %>% select(rowid, text_item_name, text_category),
                   by = c("ref_id"= "rowid")) %>%
-        mutate(rank = rep(1:topn, length(tmp_list))) %>%
         rename("main_item" = "text_item_name.x",
                "ref_item" = "text_item_name.y",
                "main_item_category" = "text_category.x",
@@ -217,6 +209,24 @@ D200TechSimilarityTask <- R6::R6Class(
       tmp_file_name <- Sys.time() %>% format(format = "%Y-%m-%d-%H-%M-%S")
       write.csv(tmp_tbl,  paste0("recommend_result//",tmp_file_name,"_recom_result.csv"), row.names = FALSE)
       message(" \n Export recommendation list successfully! Please check recommend_result folder in your working directory.")
+
+    },
+
+    get_connection = function(id1, id2) {
+
+      if (is.null(self$corpus_matrix)) {
+        abort("corpus_matrix not found !")
+      }
+
+      tmp_connection <- normalize(self$corpus_matrix[as.character(id1),,drop = FALSE], "l2") *
+        normalize(self$corpus_matrix[as.character(id2),,drop = FALSE], "l2")
+
+      connection_tbl <- tibble(term = tmp_connection@Dimnames[[2]][which(as.matrix(tmp_connection)>0)],
+                               connect_percentage = tmp_connection@x) %>%
+        mutate(connect_percentage = connect_percentage/sum(connect_percentage)) %>%
+        arrange(desc(connect_percentage))
+
+      connection_tbl %>% View()
 
     }
 
@@ -244,6 +254,7 @@ D200TechSimilarityTask <- R6::R6Class(
       t2v_token_set <- corpus_data %>%
         mutate(token = map_chr(corpus_data$text_content, token_func))
       it <- itoken(t2v_token_set$token, progressbar = FALSE)
+      self$raw_corpus <- t2v_token_set
       message(" \nStep(1/5):Tokenize corpus successfully!")
 
       v <- create_vocabulary(it)
