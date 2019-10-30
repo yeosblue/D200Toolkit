@@ -83,14 +83,10 @@ D200TechSimilarityTask <- R6::R6Class(
         abort("Please check whether the column name is correct.")
       }
 
-      tmp_raw_corpus <- tmp_raw_corpus %>%
-        rowid_to_column()
-
       self$raw_corpus <- tmp_raw_corpus
 
       message(" \nThe task create successfully!")
 
-      private$get_vectorize_matrix()
 
     },
 
@@ -116,6 +112,11 @@ D200TechSimilarityTask <- R6::R6Class(
     get_insight_matrix = function(corpus_matrix = self$corpus_matrix,
                                   set_cat = list(main_cat = "main_cat_name",
                                                  ref_cat = "ref_cat_name")){
+      self$raw_corpus <- self$raw_corpus %>%
+        arrange(match(text_category, c(set_cat[["ref_cat"]], set_cat[["main_cat"]]))) %>%
+        rowid_to_column()
+
+      private$get_vectorize_matrix()
 
       text_category_all <- unique(self$raw_corpus$text_category)
 
