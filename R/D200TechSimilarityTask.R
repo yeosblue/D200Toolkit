@@ -144,14 +144,14 @@ D200TechSimilarityTask <- R6::R6Class(
         )
       )
 
-      if (!dir.exists("insight_matrix_set")) {
-        abort("folder-insight_matrix_set not found! Please initialize the project/check the working directory whether correct")
-      }
+      #if (!dir.exists("insight_matrix_set")) {
+      #  abort("folder-insight_matrix_set not found! Please initialize the project/check the working directory whether correct")
+      #}
 
-      tmp_file_name <- Sys.time() %>% format(format = "%Y-%m-%d-%H-%M-%S")
-      write_rds(insight_marix_set, paste0("insight_matrix_set//",tmp_file_name,"_ins_matrix.RDS"))
+      #tmp_file_name <- Sys.time() %>% format(format = "%Y-%m-%d-%H-%M-%S")
+      #write_rds(insight_marix_set, paste0("insight_matrix_set//",tmp_file_name,"_ins_matrix.RDS"))
 
-      message(" \ninsight_matrix_set has been stored in insight_matrix_set folder successfully!")
+      #message(" \ninsight_matrix_set has been stored in insight_matrix_set folder successfully!")
 
       self$insight_matrix_set <- insight_marix_set
 
@@ -208,10 +208,11 @@ D200TechSimilarityTask <- R6::R6Class(
                "ref_item_category" = "text_category.y") %>%
         select(rank, ref_item, ref_item_category, main_item, main_item_category)
 
-      tmp_file_name <- Sys.time() %>% format(format = "%Y-%m-%d-%H-%M-%S")
-      write_excel_csv(tmp_tbl,  paste0("recommend_result//",tmp_file_name,"_recom_result.csv"))
-      message(" \n Export recommendation list successfully! Please check recommend_result folder in your working directory.")
+      # tmp_file_name <- Sys.time() %>% format(format = "%Y-%m-%d-%H-%M-%S")
+      # write_excel_csv(tmp_tbl,  paste0("recommend_result//",tmp_file_name,"_recom_result.csv"))
+      # message(" \n Export recommendation list successfully! Please check recommend_result folder in your working directory.")
 
+      return(tmp_tbl)
     },
 
     get_connection = function(id1, id2) {
